@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Recipe Builder</title>
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
         body {
             margin: 0;
@@ -28,8 +24,6 @@
             background: rgba(0, 0, 0, 0.4);
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 10;
         }
 
         h1 {
@@ -69,7 +63,6 @@
             height: 220px;
             margin: 20px auto;
             border: 5px solid black;
-            border-radius: 0px;
             background-color: #fff;
             display: flex;
             justify-content: center;
@@ -81,63 +74,10 @@
         .photo-frame img {
             max-width: 100%;
             height: auto;
-            border-radius: 0px;
-        }
-
-        .ar-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        .ui-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            color: white;
-            text-shadow: 1px 1px 2px black;
-        }
-
-        #ingredient-list, #detected-objects {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 2em; }
-            p { font-size: 1em; }
-            .btn { 
-                font-size: 1em; 
-                padding: 12px 25px; 
-            }
-            .photo-frame {
-                width: 250px;
-                height: 250px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="ar-container">
-        <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-            <a-camera gps-camera rotation-reader></a-camera>
-        </a-scene>
-    </div>
-
-    <div class="ui-container" style="display:none;">
-        <h1>Scan Your Ingredients</h1>
-        <button class="btn" onclick="startScan()">Start Scan</button>
-        <button class="btn" onclick="finishScan()">Done</button>
-        <div id="ingredient-list"></div>
-        <div id="detected-objects"></div>
-    </div>
-
     <div class="container">
         <h1>Welcome to AI Recipe Builder</h1>
         <p>Scan your ingredients with AR technology and discover new recipes and prevent food waste</p>
@@ -146,71 +86,7 @@
             <img src="chefshackathon.png" alt="Uploaded Image">
         </div>
 
-        <button onclick="startARScan()" class="btn">Start Scanning</button>
+        <a href="scan.html" class="btn">Start Scanning</a>
     </div>
-
-    <script>
-        let model;
-        let isScanning = false;
-
-        async function loadModel() {
-            model = await cocoSsd.load();
-            console.log('Model loaded');
-        }
-
-        async function detectObjects(video) {
-            const predictions = await model.detect(video);
-            updateIngredientList(predictions);
-        }
-
-        function updateIngredientList(predictions) {
-            const ingredientList = document.getElementById('ingredient-list');
-            const detectedObjects = document.getElementById('detected-objects');
-            ingredientList.innerHTML = '<h3>Detected Ingredients:</h3>';
-            detectedObjects.innerHTML = '<h3>All Detected Objects:</h3>';
-            predictions.forEach((prediction, index) => {
-                if (isIngredient(prediction.class)) {
-                    ingredientList.innerHTML += `<p>${index + 1}. ${prediction.class} (${Math.round(prediction.score * 100)}% confidence)</p>`;
-                }
-                detectedObjects.innerHTML += `<p>${prediction.class} (${Math.round(prediction.score * 100)}% confidence)</p>`;
-            });
-        }
-
-        function isIngredient(object) {
-            const ingredients = ['banana', 'apple', 'orange', 'carrot', 'broccoli', 'tomato'];
-            return ingredients.includes(object.toLowerCase());
-        }
-
-        function startARScan() {
-            document.querySelector('.container').style.display = 'none';
-            document.querySelector('.ui-container').style.display = 'block';
-        }
-
-        function startScan() {
-            isScanning = true;
-            const video = document.querySelector('video');
-            detectLoop(video);
-        }
-
-        function detectLoop(video) {
-            if (isScanning) {
-                detectObjects(video);
-                requestAnimationFrame(() => detectLoop(video));
-            }
-        }
-
-        function finishScan() {
-            isScanning = false;
-            alert('Scan completed! Ingredients detected.');
-            document.querySelector('.container').style.display = 'block';
-            document.querySelector('.ui-container').style.display = 'none';
-        }
-
-        window.onload = loadModel;
-
-        document.addEventListener('arjs-video-loaded', () => {
-            console.log('AR.js video loaded');
-        });
-    </script>
 </body>
 </html>
