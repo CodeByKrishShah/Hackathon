@@ -4,42 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Ingredients</title>
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background: #000;
             height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
         }
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
+
+        .container {
+            position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff;
-            text-align: center;
         }
-        .overlay h1 {
-            font-size: 2.5em;
-            font-weight: bold;
-            text-shadow: 1px 1px 10px rgba(0, 0, 0, 0.8);
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
+
+        .overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
         .btn {
-            width: 80%;
-            max-width: 400px;
-            padding: 15px;
+            padding: 15px 30px;
             font-size: 1.2em;
             font-weight: bold;
             color: #fff;
@@ -49,120 +47,48 @@
             cursor: pointer;
             transition: all 0.3s ease-in-out;
             box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
-            margin-top: 20px;
+            text-align: center;
         }
+
         .btn:hover {
             background: #ff7300;
-            transform: translateY(-3px);
-        }
-        #ingredient-list {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 100%;
-            display: none;
-        }
-        #captured-image {
-            display: none;
-            max-width: 100%;
-            margin-top: 20px;
-            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <a-marker preset="hiro">
-            <a-box position="0 0.5 0" material="color: red;"></a-box>
-        </a-marker>
-        <a-entity camera></a-entity>
-    </a-scene>
-
-    <div class="overlay">
-        <h1>Scan Your Ingredients</h1>
-        <button class="btn" onclick="startScan()">Start Scan</button>
-        <button class="btn" onclick="checkScan()">Check Scan</button>
-        <div id="ingredient-list">
-            <h3>Detected Objects:</h3>
-            <ul id="ingredients"></ul>
+    <div class="container">
+        <video id="camera-feed" autoplay playsinline></video>
+        <div class="overlay">
+            <button class="btn" onclick="captureImage()">Take Photo</button>
         </div>
-        <img id="captured-image" alt="Captured Image">
-        <button class="btn" onclick="finishScan()">Done</button>
     </div>
 
     <script>
-        let model;
-
-        async function loadModel() {
-            model = await cocoSsd.load();
-            console.log('Model loaded');
-        }
-
-        async function detectObjects(imageElement) {
-            const predictions = await model.detect(imageElement);
-            updateIngredientList(predictions);
-        }
-
-        function updateIngredientList(predictions) {
-            const ingredientList = document.getElementById('ingredients');
-            ingredientList.innerHTML = '';
-            predictions.forEach((prediction, index) => {
-                let li = document.createElement('li');
-                li.textContent = `${index + 1}. ${prediction.class} (${Math.round(prediction.score * 100)}% confidence)`;
-                ingredientList.appendChild(li);
-            });
-            document.getElementById('ingredient-list').style.display = 'block';
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                const videoElement = document.getElementById('camera-feed');
+                videoElement.srcObject = stream;
+            } catch (error) {
+                alert('Error accessing camera: ' + error.message);
+            }
         }
 
         function captureImage() {
-            const video = document.querySelector('video');
+            const video = document.getElementById('camera-feed');
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            return canvas.toDataURL('image/jpeg');
-        }
-
-        function startScan() {
-            const video = document.querySelector('video');
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Capture the image
-            const capturedImage = captureImage();
-            
-            // Display the captured image
-            const imgElement = document.getElementById('captured-image');
-            imgElement.src = capturedImage;
-            imgElement.style.display = 'block';
-            
-            // Analyze the captured image
-            imgElement.onload = () => {
-                detectObjects(imgElement);
-            };
+            // Convert to data URL and store it
+            const imageData = canvas.toDataURL('image/png');
+            localStorage.setItem('capturedImage', imageData);
+            window.location.href = 'scan_results.html';
         }
 
-        function showIngredients() {
-            document.getElementById('ingredient-list').style.display = 'block';
-        }
-
-        function finishScan() {
-            window.location.href = 'confirm.html';
-        }
-
-        window.onload = loadModel;
-        function checkScan() {
-    const capturedImage = document.getElementById('captured-image').src;
-    const ingredients = document.getElementById('ingredients').innerHTML;
-    
-    // Store the data in localStorage
-    localStorage.setItem('capturedImage', capturedImage);
-    localStorage.setItem('ingredients', ingredients);
-    
-    // Navigate to the results page
-    window.location.href = 'scan_results.html';
-}
-
+        window.onload = startCamera;
     </script>
 </body>
 </html>
