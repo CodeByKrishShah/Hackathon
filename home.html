@@ -6,8 +6,9 @@
     <title>AI Recipe Builder</title>
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
-        /* Combined Styles */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -101,7 +102,7 @@
             text-shadow: 1px 1px 2px black;
         }
 
-        #ingredient-list {
+        #ingredient-list, #detected-objects {
             background: rgba(0, 0, 0, 0.5);
             padding: 10px;
             border-radius: 5px;
@@ -123,30 +124,24 @@
     </style>
 </head>
 <body>
-    <!-- AR Scene -->
     <div class="ar-container">
         <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
-            <a-marker preset="hiro">
-                <a-box position='0 0.5 0' material='color: red;'></a-box>
-            </a-marker>
-            <a-entity camera></a-entity>
+            <a-camera gps-camera rotation-reader></a-camera>
         </a-scene>
     </div>
 
-    <!-- UI Container -->
     <div class="ui-container" style="display:none;">
         <h1>Scan Your Ingredients</h1>
         <button class="btn" onclick="startScan()">Start Scan</button>
         <button class="btn" onclick="finishScan()">Done</button>
         <div id="ingredient-list"></div>
+        <div id="detected-objects"></div>
     </div>
 
-    <!-- Main Container -->
     <div class="container">
         <h1>Welcome to AI Recipe Builder</h1>
         <p>Scan your ingredients with AR technology and discover new recipes and prevent food waste</p>
 
-        <!-- Photo Frame Section -->
         <div class="photo-frame">
             <img src="chefshackathon.png" alt="Uploaded Image">
         </div>
@@ -155,25 +150,67 @@
     </div>
 
     <script>
+        let model;
+        let isScanning = false;
+
+        async function loadModel() {
+            model = await cocoSsd.load();
+            console.log('Model loaded');
+        }
+
+        async function detectObjects(video) {
+            const predictions = await model.detect(video);
+            updateIngredientList(predictions);
+        }
+
+        function updateIngredientList(predictions) {
+            const ingredientList = document.getElementById('ingredient-list');
+            const detectedObjects = document.getElementById('detected-objects');
+            ingredientList.innerHTML = '<h3>Detected Ingredients:</h3>';
+            detectedObjects.innerHTML = '<h3>All Detected Objects:</h3>';
+            predictions.forEach((prediction, index) => {
+                if (isIngredient(prediction.class)) {
+                    ingredientList.innerHTML += `<p>${index + 1}. ${prediction.class} (${Math.round(prediction.score * 100)}% confidence)</p>`;
+                }
+                detectedObjects.innerHTML += `<p>${prediction.class} (${Math.round(prediction.score * 100)}% confidence)</p>`;
+            });
+        }
+
+        function isIngredient(object) {
+            const ingredients = ['banana', 'apple', 'orange', 'carrot', 'broccoli', 'tomato'];
+            return ingredients.includes(object.toLowerCase());
+        }
+
         function startARScan() {
             document.querySelector('.container').style.display = 'none';
             document.querySelector('.ui-container').style.display = 'block';
         }
 
         function startScan() {
-            const ingredients = ['Banana', 'Carrot', 'Spinach'];
-            const ingredientList = document.getElementById('ingredient-list');
-            ingredientList.innerHTML = '<h3>Detected Ingredients:</h3>';
-            ingredients.forEach((ingredient, index) => {
-                ingredientList.innerHTML += `<p>${index + 1}. ${ingredient}</p>`;
-            });
+            isScanning = true;
+            const video = document.querySelector('video');
+            detectLoop(video);
+        }
+
+        function detectLoop(video) {
+            if (isScanning) {
+                detectObjects(video);
+                requestAnimationFrame(() => detectLoop(video));
+            }
         }
 
         function finishScan() {
+            isScanning = false;
             alert('Scan completed! Ingredients detected.');
             document.querySelector('.container').style.display = 'block';
             document.querySelector('.ui-container').style.display = 'none';
         }
+
+        window.onload = loadModel;
+
+        document.addEventListener('arjs-video-loaded', () => {
+            console.log('AR.js video loaded');
+        });
     </script>
 </body>
 </html>
