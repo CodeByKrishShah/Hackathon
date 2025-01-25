@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Ingredients</title>
     <style>
-        /* General Styles */
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -68,27 +67,6 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(255, 59, 47, 0.4);
         }
-
-        #ingredient-list {
-            text-align: left;
-            font-size: 1.2em;
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-            }
-            .btn {
-                font-size: 1em;
-                padding: 12px 25px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -116,7 +94,6 @@
         }
 
         function startScan() {
-            // Simulated ingredient detection for now
             const ingredients = ['Apple', 'Banana', 'Carrot', 'Spinach'];
             ingredientList.innerHTML = '<h3>Detected Ingredients:</h3>';
             ingredients.forEach((ingredient, index) => {
@@ -125,7 +102,7 @@
         }
 
         function finishScan() {
-            alert('Scan completed! Ingredients detected.');
+            window.location.href = 'customize.html';
         }
 
         startCamera();
