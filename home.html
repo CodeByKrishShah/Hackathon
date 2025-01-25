@@ -90,7 +90,6 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            display: none; /* Hide AR scene initially */
         }
 
         .ui-container {
@@ -159,7 +158,6 @@
         function startARScan() {
             document.querySelector('.container').style.display = 'none';
             document.querySelector('.ui-container').style.display = 'block';
-            document.querySelector('.ar-container').style.display = 'block'; // Show AR scene when scan starts
         }
 
         function startScan() {
@@ -175,7 +173,6 @@
             alert('Scan completed! Ingredients detected.');
             document.querySelector('.container').style.display = 'block';
             document.querySelector('.ui-container').style.display = 'none';
-            document.querySelector('.ar-container').style.display = 'none'; // Hide AR scene when scan is done
         }
     </script>
 </body>
