@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Results</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -111,30 +109,37 @@
     <div class="container">
         <h1>Scan Results</h1>
         <img id="captured-image" alt="Captured Image">
-        <h2>Detected Objects:</h2>
+        <h2>Detected Ingredients:</h2>
         <ul id="ingredients"></ul>
         <a href="scan.html" class="btn">Back to Scan</a>
     </div>
 
     <script>
-        let model;
-
-        async function loadModel() {
-            model = await cocoSsd.load();
-            console.log('Model loaded');
-            analyzeImage();
-        }
-
         async function analyzeImage() {
             const capturedImage = localStorage.getItem('capturedImage');
             const imgElement = document.getElementById('captured-image');
-            
+
             if (capturedImage) {
                 imgElement.src = capturedImage;
-                imgElement.onload = async () => {
-                    const predictions = await model.detect(imgElement);
-                    updateIngredientList(predictions);
-                };
+                const blob = await fetch(capturedImage).then(res => res.blob());
+                const formData = new FormData();
+                formData.append("image", blob, "image.png");
+
+                try {
+                    const response = await fetch('http://localhost:5000/analyze', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Error analyzing the image.');
+                    }
+
+                    const data = await response.json();
+                    updateIngredientList(data.ingredients);
+                } catch (error) {
+                    document.getElementById('ingredients').innerHTML = `<li>Error: ${error.message}</li>`;
+                }
             } else {
                 imgElement.alt = "No image found";
                 document.getElementById('ingredients').innerHTML = "<li>No image to analyze.</li>";
@@ -143,21 +148,21 @@
             localStorage.removeItem('capturedImage');
         }
 
-        function updateIngredientList(predictions) {
+        function updateIngredientList(ingredients) {
             const ingredientList = document.getElementById('ingredients');
             ingredientList.innerHTML = '';
-            if (predictions.length > 0) {
-                predictions.forEach((prediction, index) => {
+            if (ingredients.length > 0) {
+                ingredients.forEach((ingredient, index) => {
                     let li = document.createElement('li');
-                    li.textContent = `${index + 1}. ${prediction.class} (${Math.round(prediction.score * 100)}% confidence)`;
+                    li.textContent = `${index + 1}. ${ingredient}`;
                     ingredientList.appendChild(li);
                 });
             } else {
-                ingredientList.innerHTML = "<li>No objects detected.</li>";
+                ingredientList.innerHTML = "<li>No ingredients detected.</li>";
             }
         }
 
-        window.onload = loadModel;
+        window.onload = analyzeImage;
     </script>
 </body>
 </html>
