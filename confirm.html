@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Ingredients</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #093eff, #ff7300);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 700px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .ingredient-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .ingredient-item input {
+            width: 50px;
+            padding: 5px;
+            font-size: 1.2em;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background: #ff8e61;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
+        }
+
+        .btn:hover {
+            background: #ff7300;
+            transform: translateY(-3px);
+        }
+
+        .remove-btn {
+            background: red;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .add-ingredient {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .add-ingredient input {
+            padding: 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 10px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Confirm Ingredients</h1>
+
+        <ul class="ingredient-list" id="ingredient-list">
+            <!-- Ingredients will be populated dynamically -->
+        </ul>
+
+        <div class="add-ingredient">
+            <input type="text" id="new-ingredient" placeholder="Add new ingredient">
+            <input type="number" id="new-quantity" placeholder="Quantity" min="1" value="1">
+            <button class="btn" onclick="addIngredient()">Add</button>
+        </div>
+
+        <br>
+        <button class="btn" onclick="confirmIngredients()">Confirm</button>
+    </div>
+
+    <script>
+        let detectedIngredients = [
+            { name: 'Tomato', count: 3 },
+            { name: 'Banana', count: 2 },
+            { name: 'Carrot', count: 1 }
+        ];
+
+        function loadIngredients() {
+            const list = document.getElementById('ingredient-list');
+            list.innerHTML = '';  // Clear previous data
+            detectedIngredients.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'ingredient-item';
+                li.innerHTML = `
+                    <span>${item.name}</span>
+                    <input type="number" value="${item.count}" min="1" id="count-${index}">
+                    <button class="remove-btn" onclick="removeIngredient(${index})">Remove</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function addIngredient() {
+            const ingredientInput = document.getElementById('new-ingredient');
+            const quantityInput = document.getElementById('new-quantity');
+
+            if (ingredientInput.value.trim() !== '') {
+                detectedIngredients.push({
+                    name: ingredientInput.value.trim(),
+                    count: parseInt(quantityInput.value)
+                });
+
+                ingredientInput.value = '';
+                quantityInput.value = '1';
+
+                loadIngredients();
+            }
+        }
+
+        function removeIngredient(index) {
+            detectedIngredients.splice(index, 1);
+            loadIngredients();
+        }
+
+        function confirmIngredients() {
+            detectedIngredients.forEach((item, index) => {
+                item.count = parseInt(document.getElementById(`count-${index}`).value);
+            });
+            localStorage.setItem('confirmedIngredients', JSON.stringify(detectedIngredients));
+            window.location.href = 'customize.html';
+        }
+
+        window.onload = loadIngredients;
+    </script>
+</body>
+</html>
