@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Ingredients</title>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 700px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 5px solid #fff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        video {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background: #ff6f61;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
+        }
+
+        .btn:hover {
+            background: #ff3b2f;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 59, 47, 0.4);
+        }
+
+        #ingredient-list {
+            text-align: left;
+            font-size: 1.2em;
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            .btn {
+                font-size: 1em;
+                padding: 12px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scan Your Ingredients</h1>
+        <div id="camera-container">
+            <video id="camera-feed" autoplay></video>
+        </div>
+        <button class="btn" onclick="startScan()">Start Scan</button>
+        <button class="btn" onclick="finishScan()">Done</button>
+        <div id="ingredient-list"></div>
+    </div>
+
+    <script>
+        const videoElement = document.getElementById('camera-feed');
+        const ingredientList = document.getElementById('ingredient-list');
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+            } catch (err) {
+                alert('Error accessing the camera: ' + err.message);
+            }
+        }
+
+        function startScan() {
+            // Simulated ingredient detection for now
+            const ingredients = ['Apple', 'Banana', 'Carrot', 'Spinach'];
+            ingredientList.innerHTML = '<h3>Detected Ingredients:</h3>';
+            ingredients.forEach((ingredient, index) => {
+                ingredientList.innerHTML += `<p>${index + 1}. ${ingredient}</p>`;
+            });
+        }
+
+        function finishScan() {
+            alert('Scan completed! Ingredients detected.');
+        }
+
+        startCamera();
+    </script>
+</body>
+</html>

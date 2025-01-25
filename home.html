@@ -1,13 +1,82 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>RECIPE APP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Food Scanner</title>
+    <style>
+        /* General Styles */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background: #ff6f61;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
+        }
+
+        .btn:hover {
+            background: #ff3b2f;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 59, 47, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .btn {
+                font-size: 1em;
+                padding: 12px 25px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-    <h1>WELCOME</h1>
-    <p>this is the website</p>
+    <div class="container">
+        <h1>Welcome to AI Recipe Builder</h1>
+        <p>Scan your ingredients with AR technology and discover new recipes.</p>
+        <a href="scan.html" class="btn">Start Scanning</a>
+    </div>
 </body>
-
 </html>
