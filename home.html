@@ -58,6 +58,27 @@
             box-shadow: 0 10px 25px rgba(255, 59, 47, 0.4);
         }
 
+        /* Photo Frame Styles */
+        .photo-frame {
+            width: 300px;
+            height: 220px;
+            margin: 20px auto;
+            border: 5px solid black;
+            border-radius: 0px;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .photo-frame img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0px;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 2em;
@@ -69,13 +90,23 @@
                 font-size: 1em;
                 padding: 12px 25px;
             }
+            .photo-frame {
+                width: 250px;
+                height: 250px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to AI Recipe Builder</h1>
-        <p>Scan your ingredients with AR technology and discover new recipes.</p>
+        <p>Scan your ingredients with AR technology and discover new recipes and prevent food waste</p>
+
+        <!-- Photo Frame Section -->
+        <div class="photo-frame">
+            <img src="chefshackathon.png" alt="Uploaded Image">
+        </div>
+
         <a href="scan.html" class="btn">Start Scanning</a>
     </div>
 </body>
