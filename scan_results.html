@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scan Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -115,25 +117,47 @@
     </div>
 
     <script>
-        window.onload = function() {
+        let model;
+
+        async function loadModel() {
+            model = await cocoSsd.load();
+            console.log('Model loaded');
+            analyzeImage();
+        }
+
+        async function analyzeImage() {
             const capturedImage = localStorage.getItem('capturedImage');
-            const ingredients = localStorage.getItem('ingredients');
+            const imgElement = document.getElementById('captured-image');
             
             if (capturedImage) {
-                document.getElementById('captured-image').src = capturedImage;
+                imgElement.src = capturedImage;
+                imgElement.onload = async () => {
+                    const predictions = await model.detect(imgElement);
+                    updateIngredientList(predictions);
+                };
             } else {
-                document.getElementById('captured-image').alt = "No image found";
-            }
-
-            if (ingredients) {
-                document.getElementById('ingredients').innerHTML = ingredients;
-            } else {
-                document.getElementById('ingredients').innerHTML = "<li>No ingredients detected.</li>";
+                imgElement.alt = "No image found";
+                document.getElementById('ingredients').innerHTML = "<li>No image to analyze.</li>";
             }
 
             localStorage.removeItem('capturedImage');
-            localStorage.removeItem('ingredients');
         }
+
+        function updateIngredientList(predictions) {
+            const ingredientList = document.getElementById('ingredients');
+            ingredientList.innerHTML = '';
+            if (predictions.length > 0) {
+                predictions.forEach((prediction, index) => {
+                    let li = document.createElement('li');
+                    li.textContent = `${index + 1}. ${prediction.class} (${Math.round(prediction.score * 100)}% confidence)`;
+                    ingredientList.appendChild(li);
+                });
+            } else {
+                ingredientList.innerHTML = "<li>No objects detected.</li>";
+            }
+        }
+
+        window.onload = loadModel;
     </script>
 </body>
 </html>
