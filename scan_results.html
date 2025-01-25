@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Results</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScanToRecipe - Scan Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,7 +24,7 @@
             background-color: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -107,8 +109,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Scan Results</h1>
-        <img id="captured-image" alt="Captured Image">
+        <h1>ScanToRecipe - Scan Results</h1>
+        <img id="captured-image" alt="Captured Image" />
         <h2>Detected Ingredients:</h2>
         <ul id="ingredients"></ul>
         <a href="scan.html" class="btn">Back to Scan</a>
@@ -116,50 +118,91 @@
 
     <script>
         async function analyzeImage() {
-            const capturedImage = localStorage.getItem('capturedImage');
-            const imgElement = document.getElementById('captured-image');
+            const capturedImage = localStorage.getItem("capturedImage");
+            const imgElement = document.getElementById("captured-image");
 
             if (capturedImage) {
                 imgElement.src = capturedImage;
-                const blob = await fetch(capturedImage).then(res => res.blob());
-                const formData = new FormData();
-                formData.append("image", blob, "image.png");
 
-                try {
-                    const response = await fetch('http://localhost:5000/analyze', {
-                        method: 'POST',
-                        body: formData
-                    });
+                const blob = await fetch(capturedImage).then((res) => res.blob());
+                const reader = new FileReader();
 
-                    if (!response.ok) {
-                        throw new Error('Error analyzing the image.');
+                reader.onloadend = async function () {
+                    const imageData = reader.result.split(",")[1];
+
+                    try {
+                        const response = await fetch(
+                            "https://api.openai.com/v1/chat/completions",
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${getAPIKey()}`,
+                                },
+                                body: JSON.stringify({
+                                    model: "gpt-4o-mini",
+                                    messages: [
+                                        {
+                                            role: "system",
+                                            content: "Analyze the provided image and identify all edible foods and ingredients. Provide a list of detected items.",
+                                        },
+                                        {
+                                            role: "user",
+                                            content: [
+                                                {
+                                                    type: "text",
+                                                    content: "Analyze this image for food ingredients.",
+                                                },
+                                                {
+                                                    type: "image_url",
+                                                    image_url: `data:image/jpeg;base64,${imageData}`,
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                }),
+                            }
+                        );
+
+                        if (!response.ok) {
+                            throw new Error("Error analyzing the image.");
+                        }
+
+                        const data = await response.json();
+                        const detectedIngredients = data.choices[0].message.content.split("\n");
+                        updateIngredientList(detectedIngredients);
+                    } catch (error) {
+                        document.getElementById("ingredients").innerHTML = `<li>Error: ${error.message}</li>`;
                     }
+                };
 
-                    const data = await response.json();
-                    updateIngredientList(data.ingredients);
-                } catch (error) {
-                    document.getElementById('ingredients').innerHTML = `<li>Error: ${error.message}</li>`;
-                }
+                reader.readAsDataURL(blob);
             } else {
                 imgElement.alt = "No image found";
-                document.getElementById('ingredients').innerHTML = "<li>No image to analyze.</li>";
+                document.getElementById("ingredients").innerHTML = "<li>No image to analyze.</li>";
             }
 
-            localStorage.removeItem('capturedImage');
+            localStorage.removeItem("capturedImage");
         }
 
         function updateIngredientList(ingredients) {
-            const ingredientList = document.getElementById('ingredients');
-            ingredientList.innerHTML = '';
-            if (ingredients.length > 0) {
+            const ingredientList = document.getElementById("ingredients");
+            ingredientList.innerHTML = "";
+
+            if (ingredients.length > 0 && ingredients[0].trim() !== "") {
                 ingredients.forEach((ingredient, index) => {
-                    let li = document.createElement('li');
+                    const li = document.createElement("li");
                     li.textContent = `${index + 1}. ${ingredient}`;
                     ingredientList.appendChild(li);
                 });
             } else {
                 ingredientList.innerHTML = "<li>No ingredients detected.</li>";
             }
+        }
+
+        function getAPIKey() {
+            // Ideally, fetch this securely from an environment variable or backend API
+            return "api key";
         }
 
         window.onload = analyzeImage;
