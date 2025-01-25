@@ -8,43 +8,100 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
+
         .container {
+            width: 90%;
             max-width: 600px;
-            margin: 0 auto;
             background-color: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
         }
+
         h1 {
             color: #333;
+            text-align: center;
         }
+
         #captured-image {
+            width: 100%;
             max-width: 100%;
+            height: auto;
             border-radius: 10px;
             margin-bottom: 20px;
+            object-fit: cover;
         }
+
+        h2 {
+            width: 100%;
+            text-align: center;
+            color: #333;
+        }
+
         #ingredients {
             list-style-type: none;
             padding: 0;
+            width: 100%;
         }
+
         #ingredients li {
             margin-bottom: 10px;
-            padding: 10px;
+            padding: 15px;
             background-color: #f9f9f9;
             border-radius: 5px;
+            text-align: center;
+            font-size: 1.2em;
         }
+
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
             background-color: #ff8e61;
             color: white;
-            text-decoration: none;
+            text-align: center;
             border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease-in-out;
             margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #ff7300;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            #ingredients li {
+                font-size: 1em;
+                padding: 12px;
+            }
+
+            .btn {
+                font-size: 1em;
+                padding: 12px;
+            }
         }
     </style>
 </head>
@@ -62,9 +119,18 @@
             const capturedImage = localStorage.getItem('capturedImage');
             const ingredients = localStorage.getItem('ingredients');
             
-            document.getElementById('captured-image').src = capturedImage;
-            document.getElementById('ingredients').innerHTML = ingredients;
-            
+            if (capturedImage) {
+                document.getElementById('captured-image').src = capturedImage;
+            } else {
+                document.getElementById('captured-image').alt = "No image found";
+            }
+
+            if (ingredients) {
+                document.getElementById('ingredients').innerHTML = ingredients;
+            } else {
+                document.getElementById('ingredients').innerHTML = "<li>No ingredients detected.</li>";
+            }
+
             localStorage.removeItem('capturedImage');
             localStorage.removeItem('ingredients');
         }
