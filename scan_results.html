@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ScanToRecipe - Scan Results</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
@@ -45,10 +45,19 @@
       border-radius: 5px;
       text-decoration: none;
       font-weight: bold;
+      margin-top: 20px;
     }
 
     .btn:hover {
       background-color: #ff7300;
+    }
+
+    /* Optional styling for the detected items list */
+    #detected-items {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #333;
+      line-height: 1.4em;
     }
   </style>
 </head>
@@ -56,6 +65,10 @@
   <div class="container">
     <h1>ScanToRecipe - Scan Results</h1>
     <img id="captured-image" alt="Captured Image Not Found" />
+    
+    <!-- This is the new container for detected ingredients -->
+    <div id="detected-items"></div>
+
     <a href="scan.html" class="btn">Back to Scan</a>
   </div>
 
@@ -63,6 +76,7 @@
     async function analyzeImage() {
       const capturedImage = localStorage.getItem("capturedImage"); // Retrieve stored image
       const imgElement = document.getElementById("captured-image");
+      const detectedItemsDiv = document.getElementById("detected-items");
 
       if (capturedImage) {
         imgElement.src = capturedImage; // Display the captured image
@@ -81,21 +95,23 @@
             );
 
             if (foodItems.length > 0) {
-              alert(
-                "Detected Food Items:\n" +
-                  foodItems.map((item) => `${item.class} (${item.score.toFixed(2)})`).join("\n")
-              );
+              // Show detected items in the <div> instead of alert
+              const itemList = foodItems
+                .map((item) => `${item.class} (${item.score.toFixed(2)})`)
+                .join("<br>");
+              detectedItemsDiv.innerHTML = `Detected Food Items:<br>${itemList}`;
             } else {
-              alert("No food items detected.");
+              detectedItemsDiv.innerHTML = "No food items detected.";
             }
           } catch (error) {
             console.error("Error loading model or detecting objects:", error);
+            detectedItemsDiv.innerHTML = "Error detecting objects. Please try again.";
           }
         };
       } else {
         imgElement.alt = "No image found";
         console.error("No image found in localStorage.");
-        alert("No image was captured. Please go back and scan again.");
+        detectedItemsDiv.innerHTML = "No image was captured. Please go back and scan again.";
       }
     }
 
