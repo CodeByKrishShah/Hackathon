@@ -1,94 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Ingredients</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #000;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scan Ingredients (AR)</title>
 
-        .container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
+  <!-- Include TensorFlow.js and the COCO-SSD model -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .overlay {
-            position: absolute;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #fff;
-            background: #ff8e61;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
-            text-align: center;
-        }
-
-        .btn:hover {
-            background: #ff7300;
-        }
-    </style>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 'cover' may crop the video for full coverage */
+    }
+    #overlay-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      /* Match the size of the video */
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .overlay-buttons {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2; /* above the canvas */
+    }
+    .btn {
+      padding: 15px 30px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #fff;
+      background: #ff8e61;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
+      text-align: center;
+      margin: 0 10px;
+    }
+    .btn:hover {
+      background: #ff7300;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <video id="camera-feed" autoplay playsinline></video>
-        <div class="overlay">
-            <button class="btn" onclick="captureImage()">Take Photo</button>
-        </div>
+  <div class="container">
+    <!-- Live video feed -->
+    <video id="camera-feed" autoplay playsinline></video>
+
+    <!-- Canvas on top for bounding boxes -->
+    <canvas id="overlay-canvas"></canvas>
+
+    <!-- Buttons overlay -->
+    <div class="overlay-buttons">
+      <button class="btn" onclick="captureImage()">Take Photo</button>
     </div>
+  </div>
 
-    <script>
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                const videoElement = document.getElementById('camera-feed');
-                videoElement.srcObject = stream;
-            } catch (error) {
-                alert('Error accessing camera: ' + error.message);
-            }
-        }
+  <script>
+    let videoElement, overlayCanvas, overlayCtx, model;
 
-        function captureImage() {
-            const video = document.getElementById('camera-feed');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Convert to data URL and store it
-            const imageData = canvas.toDataURL('image/png');
-            localStorage.setItem('capturedImage', imageData);
-            window.location.href = 'scan_results.html';
-        }
+    // Limit to these classes:
+    const foodItems = [
+      "apple",
+      "banana",
+      "orange",
+      "carrot",
+      "pizza",
+      "hot dog",
+      "donut",
+      "cake"
+    ];
 
-        window.onload = startCamera;
-    </script>
+    // Start camera on page load
+    window.onload = async () => {
+      videoElement = document.getElementById('camera-feed');
+      overlayCanvas = document.getElementById('overlay-canvas');
+      overlayCtx = overlayCanvas.getContext('2d');
+
+      await startCamera();
+      await loadModel();
+
+      // Match canvas size to the displayed video size when window resizes
+      window.addEventListener('resize', matchVideoDimensions);
+      matchVideoDimensions(); // Do it once now
+
+      // Begin real-time detection
+      requestAnimationFrame(detectFrame);
+    };
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+        videoElement.srcObject = stream;
+      } catch (error) {
+        alert('Error accessing camera: ' + error.message);
+      }
+    }
+
+    async function loadModel() {
+      // Load the COCO-SSD model
+      model = await cocoSsd.load();
+      console.log("COCO-SSD model loaded.");
+    }
+
+    function matchVideoDimensions() {
+      // Match the overlay canvas to the video’s *displayed* size
+      overlayCanvas.width = videoElement.offsetWidth;
+      overlayCanvas.height = videoElement.offsetHeight;
+    }
+
+    async function detectFrame() {
+      // Proceed only if model is loaded and video is ready
+      if (model && videoElement.readyState === 4) {
+        // Get predictions from the model for the current frame
+        const predictions = await model.detect(videoElement);
+
+        // Clear previous drawings
+        overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        // For more accuracy, use a higher threshold, e.g. > 0.60
+        const minScoreThreshold = 0.50;
+
+        predictions.forEach(pred => {
+          const isFood = foodItems.includes(pred.class.toLowerCase());
+          const isAboveThreshold = pred.score >= minScoreThreshold;
+
+          if (isFood && isAboveThreshold) {
+            drawBoundingBox(pred);
+          }
+        });
+      }
+      // Continue detection on the next frame
+      requestAnimationFrame(detectFrame);
+    }
+
+    function drawBoundingBox(prediction) {
+      // prediction.bbox = [x, y, width, height] in the *video’s* coordinate space
+      const [x, y, w, h] = prediction.bbox;
+
+      // Scale detection coords to the overlay canvas
+      const xRatio = overlayCanvas.width / videoElement.videoWidth;
+      const yRatio = overlayCanvas.height / videoElement.videoHeight;
+      const scaledX = x * xRatio;
+      const scaledY = y * yRatio;
+      const scaledW = w * xRatio;
+      const scaledH = h * yRatio;
+
+      // Draw bounding box
+      overlayCtx.beginPath();
+      overlayCtx.lineWidth = 2;
+      overlayCtx.strokeStyle = "red";
+      overlayCtx.rect(scaledX, scaledY, scaledW, scaledH);
+      overlayCtx.stroke();
+
+      // Prepare label text
+      const label = `${prediction.class} (${(prediction.score * 100).toFixed(1)}%)`;
+
+      // Draw text background for better visibility
+      overlayCtx.font = "16px Arial";
+      const textWidth = overlayCtx.measureText(label).width + 6;
+      const textHeight = 18;
+
+      // Position label above the box, or inside if there's not enough space
+      const textX = scaledX;
+      const textY = scaledY > 20 ? scaledY - 5 : scaledY + textHeight + 5;
+
+      overlayCtx.fillStyle = "red";
+      overlayCtx.fillRect(textX, textY - textHeight, textWidth, textHeight);
+
+      // Draw label text
+      overlayCtx.fillStyle = "#fff";
+      overlayCtx.fillText(label, textX + 3, textY - 3);
+    }
+
+    function captureImage() {
+      // Take a snapshot of the current video frame
+      const canvas = document.createElement('canvas');
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+      // Convert to data URL and store
+      const imageData = canvas.toDataURL('image/png');
+      localStorage.setItem('capturedImage', imageData);
+
+      // Redirect to results page
+      window.location.href = 'scan_results.html';
+    }
+  </script>
 </body>
 </html>
