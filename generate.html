@@ -1,102 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generate Recipes</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #093eff, #ff7300);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: #fff;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generate Recipes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-        .container {
-            max-width: 700px;
-            padding: 40px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
 
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
+    h1 {
+      color: #333;
+    }
 
-        .content {
-            width: 100%;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 1.5em;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
 
-        .btn {
-            padding: 15px 30px;
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #fff;
-            background: #ff8e61;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
-            text-decoration: none;
-            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
-            margin-top: 20px;
-        }
+    li {
+      margin-bottom: 10px;
+    }
 
-        .btn:hover {
-            background: #ff7300;
-            transform: translateY(-3px);
-        }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ff8e61;
+      color: white;
+      text-align: center;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-            }
-            .content {
-                height: 200px;
-            }
-            .btn {
-                font-size: 1em;
-                padding: 12px 25px;
-            }
-        }
-    </style>
+    .btn:hover {
+      background-color: #ff7300;
+    }
+
+    .reset-btn {
+      background-color: #d9534f; /* Red for reset */
+    }
+
+    .reset-btn:hover {
+      background-color: #c9302c; /* Darker red on hover */
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Generated Recipes</h1>
-        <div class="content">
-            <!-- Future content goes here -->
-            <p>Recipes will be displayed here...</p>
-        </div>
-        <button class="btn" onclick="goBack()">Go Back</button>
-    </div>
+<div class="container">
+<h1>Recipes Based on Your Ingredients</h1>
 
-    <script>
-        function goBack() {
-            window.history.back();
-        }
-    </script>
+<ul id="recipe-list"></ul>
+
+<div style="margin-top: 20px;">
+  <a href="index.html" class="btn">Start Over</a>
+  <button class="btn reset-btn" onclick="resetList()">Reset List</button>
+</div>
+
+<script>
+  // Predefined dictionary of recipes
+  const recipes = {
+    orange: ["Orange Juice", "Orange Cake", "Orange Salad"],
+    banana: ["Banana Bread", "Banana Smoothie", "Banana Pancakes"],
+    apple: ["Apple Pie", "Apple Crumble", "Apple Smoothie"],
+    carrot: ["Carrot Soup", "Carrot Cake", "Carrot Salad"]
+  };
+
+  // Function to get recipes for a given food item
+  function getRecipes(foodItem) {
+    return recipes[foodItem.toLowerCase()] || ["No recipes found for this item"];
+  }
+
+  // Retrieve detected items from localStorage
+  const detectedItems = JSON.parse(localStorage.getItem("detectedItems")) || [];
+  
+  // Generate recipes for each detected item
+  const recipeList = document.getElementById("recipe-list");
+  
+  if (detectedItems.length > 0) {
+    detectedItems.forEach(item => {
+      const itemRecipes = getRecipes(item);
+      
+      // Create a list item for each food item and its recipes
+      const listItem = document.createElement("li");
+      
+      listItem.innerHTML = `<strong>${item}:</strong> ${itemRecipes.join(", ")}`;
+      
+      recipeList.appendChild(listItem);
+    });
+  } else {
+    recipeList.innerHTML = "<li>No ingredients detected. Please scan again.</li>";
+  }
+
+  // Function to reset the list of detected items
+  function resetList() {
+    if (confirm("Are you sure you want to reset the list?")) {
+      localStorage.removeItem("detectedItems"); // Clear the stored list
+      alert("The list has been reset.");
+      location.reload(); // Refresh the page to reflect changes
+    }
+  }
+</script>
+</div>
 </body>
 </html>
