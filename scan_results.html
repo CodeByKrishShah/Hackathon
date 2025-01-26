@@ -103,11 +103,18 @@
           const model = await cocoSsd.load();
           const predictions = await model.detect(imgElement);
 
+          // Clear any previous highlights
+          document.querySelectorAll(".highlight, .label").forEach(el => el.remove());
+
           predictions.forEach((prediction) => {
             if (isFoodItem(prediction.class)) {
               createHighlight(prediction, container);
             }
           });
+
+          if (predictions.length === 0) {
+            alert("No food items detected. Try a clearer image.");
+          }
         };
       } else {
         imgElement.alt = "No image found";
@@ -117,7 +124,11 @@
     }
 
     function isFoodItem(item) {
-      const foodItems = ["orange", "banana", "apple", "carrot", "bottle", "cake", "donut", "pizza", "hot dog"];
+      const foodItems = [
+        "orange", "banana", "apple", "carrot", "bottle", 
+        "cake", "donut", "pizza", "hot dog", "broccoli", 
+        "sandwich", "bowl", "cup", "fork", "spoon"
+      ];
       return foodItems.includes(item.toLowerCase());
     }
 
