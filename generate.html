@@ -2,49 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Generate Recipes</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    :root {
+      --primary-color: #ff8e61;
+      --secondary-color: #ff7300;
+      --background-gradient: linear-gradient(135deg, #093eff, #ff7300);
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      background-color: #f0f0f0;
+    }
+
+    body {
+      font-family: 'Trebuchet MS', sans-serif;
+      background: var(--background-gradient);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-    }
-    .container {
-      width: 90%;
-      max-width: 600px;
-      background-color: white;
+      color: #fff;
+      text-align: center;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
     }
+
+    /* Container styling similar to home page */
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
     h1 {
-      color: #333;
+      font-size: 2em;
+      margin-bottom: 20px;
+      font-weight: bold;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     }
+
     ul {
       list-style-type: none;
       padding-left: 0;
+      margin-top: 20px;
+      text-align: left; /* left-align list content for readability */
     }
+
     li {
+      margin-bottom: 20px;
+    }
+
+    h3 {
       margin-bottom: 10px;
     }
-    .btn {
+
+    /* Recipe button style */
+    .recipe-button {
       display: inline-block;
-      padding: 10px 20px;
-      background-color: #ff8e61;
+      padding: 8px 14px;
+      margin: 5px 5px 5px 0;
+      background-color: var(--primary-color);
       color: white;
       text-align: center;
       border-radius: 5px;
       text-decoration: none;
       font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease-in-out;
     }
-    .btn:hover {
-      background-color: #ff7300;
+    .recipe-button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    /* "Start Over" link & "Reset" button style */
+    .btn-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: var(--primary-color);
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 10px;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-link:hover {
+      background-color: var(--secondary-color);
     }
     .reset-btn {
       background-color: #d9534f; /* Red for reset */
@@ -52,73 +103,333 @@
     .reset-btn:hover {
       background-color: #c9302c; /* Darker red on hover */
     }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>Recipes Based on Your Ingredients</h1>
-  <ul id="recipe-list"></ul>
+  <div class="container">
+    <h1>Recipes Based on Your Ingredients</h1>
+    <ul id="recipe-list"></ul>
 
-  <div style="margin-top: 20px;">
-    <a href="index.html" class="btn">Start Over</a>
-    <button class="btn reset-btn" onclick="resetList()">Reset List</button>
+    <div style="margin-top: 20px;">
+      <a href="index.html" class="btn-link">Start Over</a>
+      <button class="recipe-button reset-btn" onclick="resetList()">Reset List</button>
+    </div>
   </div>
-</div>
 
-<script>
-  // Example recipe dictionary
-  const recipesDB = {
-    orange: ["Orange Juice", "Orange Cake", "Orange Salad"],
-    banana: ["Banana Bread", "Banana Smoothie", "Banana Pancakes"],
-    apple:  ["Apple Pie", "Apple Crumble", "Apple Smoothie"],
-    carrot: ["Carrot Soup", "Carrot Cake", "Carrot Salad"],
-    pizza:  ["Homemade Pizza", "Pizza Rolls"],
-    "hot dog": ["Hot Dog Classic", "Chili Dog"],
-    donut: ["Glazed Donut", "Chocolate Donut"],
-    cake: ["Vanilla Cake", "Chocolate Cake"]
-  };
+  <script>
+    /*
+      Updated recipesDB:
+      - 8 total recipes for each single ingredient (Apple, Orange, Banana).
+      - 7 total recipes for each combination (Apple+Orange, Apple+Banana, Banana+Orange, Apple+Banana+Orange).
+    */
+    const recipesDB = {
+      // Single-ingredient recipes
+      "apple": [
+        {
+          name: "Apple Pie",
+          instructions: "Slice apples, mix with sugar and cinnamon, bake in a pie crust."
+        },
+        {
+          name: "Apple Crumble",
+          instructions: "Mix sliced apples with sugar and cinnamon, top with crumble mixture, bake."
+        },
+        {
+          name: "Apple Smoothie",
+          instructions: "Blend chopped apples with milk or yogurt, add honey for sweetness."
+        },
+        {
+          name: "Applesauce",
+          instructions: "Peel and chop apples, simmer with water and sugar, mash until smooth."
+        },
+        {
+          name: "Apple Salad",
+          instructions: "Chop apples, mix with greens, nuts, and a light dressing."
+        },
+        {
+          name: "Apple Jam",
+          instructions: "Cook chopped apples with sugar and lemon juice until thickened."
+        },
+        {
+          name: "Baked Apple Chips",
+          instructions: "Thinly slice apples, sprinkle cinnamon, bake on low heat until crispy."
+        },
+        {
+          name: "Apple Pancakes",
+          instructions: "Fold diced apples into pancake batter, cook on a griddle until golden."
+        }
+      ],
+      "orange": [
+        {
+          name: "Orange Juice",
+          instructions: "Peel oranges, blend or squeeze them, strain if desired."
+        },
+        {
+          name: "Orange Cake",
+          instructions: "Add orange zest/juice to cake batter, bake, then glaze if desired."
+        },
+        {
+          name: "Orange Salad",
+          instructions: "Slice oranges, mix with greens, drizzle with your favorite dressing."
+        },
+        {
+          name: "Orange Sorbet",
+          instructions: "Freeze orange juice with sugar syrup, blend until smooth, refreeze."
+        },
+        {
+          name: "Orange Marmalade",
+          instructions: "Cook orange peel, pulp, and sugar until thick; jar and cool."
+        },
+        {
+          name: "Orange Chicken",
+          instructions: "Cook chicken with orange juice, zest, soy sauce, and sugar until glazed."
+        },
+        {
+          name: "Candied Orange Peels",
+          instructions: "Boil orange peels, then simmer in sugar syrup, let dry, roll in sugar."
+        },
+        {
+          name: "Orange Popsicles",
+          instructions: "Freeze orange juice with a bit of sugar or honey in molds."
+        }
+      ],
+      "banana": [
+        {
+          name: "Banana Bread",
+          instructions: "Mash bananas, mix with flour, sugar, eggs, and bake until golden."
+        },
+        {
+          name: "Banana Smoothie",
+          instructions: "Blend bananas, milk (or yogurt), ice, sweetener optional."
+        },
+        {
+          name: "Banana Pancakes",
+          instructions: "Mash bananas into pancake batter, cook on a griddle."
+        },
+        {
+          name: "Banana Ice Cream",
+          instructions: "Freeze sliced bananas, then blend until creamy."
+        },
+        {
+          name: "Fried Bananas",
+          instructions: "Slice bananas, coat with batter, fry until golden, dust with sugar."
+        },
+        {
+          name: "Banana Muffins",
+          instructions: "Combine mashed bananas with muffin batter, bake until set."
+        },
+        {
+          name: "Chocolate-Covered Bananas",
+          instructions: "Dip bananas in melted chocolate, freeze for a sweet treat."
+        },
+        {
+          name: "Banana Oat Cookies",
+          instructions: "Mix mashed bananas with oats, optional chocolate chips, bake until firm."
+        }
+      ],
 
-  // Load the final confirmed ingredients
-  const confirmedIngredients = JSON.parse(localStorage.getItem("confirmedIngredients")) || [];
-  
-  // Optionally load the user's other preferences
-  const allergies = localStorage.getItem("allergies") || "";
-  const portion   = localStorage.getItem("portion")   || "1";
-  const prefs     = localStorage.getItem("preferences") || "";
+      // Two-ingredient combos
+      "apple+orange": [
+        {
+          name: "Apple-Orange Salad",
+          instructions: "Chop apples, segment oranges, toss with greens and dressing."
+        },
+        {
+          name: "Apple-Orange Juice",
+          instructions: "Blend or juice apples and oranges together, strain if needed."
+        },
+        {
+          name: "Apple-Orange Marmalade",
+          instructions: "Simmer diced apples with orange pulp/peel and sugar until thick."
+        },
+        {
+          name: "Apple-Orange Crisp",
+          instructions: "Mix sliced apples, orange segments, top with crumble, bake."
+        },
+        {
+          name: "Apple-Orange Tart",
+          instructions: "Layer sliced apples and oranges on pastry dough, bake, then glaze."
+        },
+        {
+          name: "Apple-Orange Smoothie",
+          instructions: "Blend apples, oranges, ice, and yogurt for a refreshing drink."
+        },
+        {
+          name: "Apple-Orange Chicken Marinade",
+          instructions: "Combine apple juice, orange juice, herbs, marinate chicken before grilling."
+        }
+      ],
+      "apple+banana": [
+        {
+          name: "Apple-Banana Smoothie",
+          instructions: "Blend apples, bananas, milk or juice, add sweetener if needed."
+        },
+        {
+          name: "Apple-Banana Oatmeal",
+          instructions: "Cook oatmeal with diced apples and mashed banana for natural sweetness."
+        },
+        {
+          name: "Apple-Banana Bread",
+          instructions: "Combine mashed bananas, grated apples in bread batter, bake."
+        },
+        {
+          name: "Apple-Banana Pancakes",
+          instructions: "Fold diced apples and mashed banana into pancake batter, cook."
+        },
+        {
+          name: "Apple-Banana Muffins",
+          instructions: "Mix shredded apples, mashed banana, flour, eggs, bake until set."
+        },
+        {
+          name: "Apple-Banana Fruit Leather",
+          instructions: "Puree apples and bananas, spread thin, dehydrate or bake on low heat."
+        },
+        {
+          name: "Apple-Banana Crisp",
+          instructions: "Layer sliced apples, banana slices, top with crumble, bake until golden."
+        }
+      ],
+      "banana+orange": [
+        {
+          name: "Banana-Orange Smoothie",
+          instructions: "Blend banana, orange juice, and yogurt for a tangy drink."
+        },
+        {
+          name: "Banana-Orange Popsicles",
+          instructions: "Puree banana and orange juice, freeze in molds."
+        },
+        {
+          name: "Banana-Orange Muffins",
+          instructions: "Add mashed banana and orange zest to muffin batter, bake."
+        },
+        {
+          name: "Banana-Orange Sorbet",
+          instructions: "Freeze bananas, blend with orange juice, refreeze for a sorbet texture."
+        },
+        {
+          name: "Banana-Orange Bread",
+          instructions: "Use mashed banana, orange zest, and juice in a sweet bread batter."
+        },
+        {
+          name: "Banana-Orange Crepes",
+          instructions: "Fill thin crepes with sliced bananas, orange segments, top with sauce."
+        },
+        {
+          name: "Banana-Orange Fruit Salad",
+          instructions: "Combine sliced bananas, orange segments, drizzle with honey or syrup."
+        }
+      ],
 
-  console.log("User allergies:", allergies);
-  console.log("Portion size:", portion);
-  console.log("Other prefs:", prefs);
+      // Three-ingredient combo
+      "apple+banana+orange": [
+        {
+          name: "Fruit Salad Trio",
+          instructions: "Dice apple, banana, and orange, combine with a splash of lime juice."
+        },
+        {
+          name: "Triple Fruit Smoothie",
+          instructions: "Blend apple, banana, and orange with yogurt or juice."
+        },
+        {
+          name: "Apple-Banana-Orange Popsicles",
+          instructions: "Puree the three fruits, freeze in popsicle molds."
+        },
+        {
+          name: "Apple-Banana-Orange Marmalade",
+          instructions: "Simmer chopped apples, bananas, and oranges with sugar until jammy."
+        },
+        {
+          name: "Apple-Banana-Orange Crisp",
+          instructions: "Layer sliced apples, banana, orange segments, top with crisp, bake."
+        },
+        {
+          name: "Apple-Banana-Orange Punch",
+          instructions: "Mix the juices of each fruit, add soda water, serve chilled."
+        },
+        {
+          name: "Apple-Banana-Orange Kebabs",
+          instructions: "Skewer chunks of apple, banana, and orange, drizzle with honey."
+        }
+      ]
+    };
 
-  const recipeList = document.getElementById("recipe-list");
+    // Load the final confirmed ingredients
+    const confirmedIngredients = JSON.parse(localStorage.getItem("confirmedIngredients")) || [];
+    // Get distinct ingredient names in lowercase
+    const distinctItems = [...new Set(confirmedIngredients.map(item => item.name.toLowerCase()))];
+    const recipeList = document.getElementById("recipe-list");
 
-  if (confirmedIngredients.length > 0) {
-    confirmedIngredients.forEach(item => {
-      // item.name = e.g. "Banana", item.count = e.g. 2
-      const lowerCaseName = item.name.toLowerCase();
-      const possibleRecipes = recipesDB[lowerCaseName] || ["No known recipes for this item"];
+    if (distinctItems.length > 0) {
+      // For each single item
+      distinctItems.forEach(ingredient => {
+        // Only show for apple, orange, banana
+        if (["apple","banana","orange"].includes(ingredient)) {
+          addRecipeButtons(ingredient);
+        }
+      });
+
+      // If more than one distinct item, show combo recipes
+      if (distinctItems.length > 1) {
+        const sortedCombo = distinctItems.sort(); 
+        // For exactly 2 or 3 distinct ingredients
+        const comboKey = sortedCombo.join("+"); 
+        if (recipesDB[comboKey]) {
+          addRecipeButtons(comboKey);
+        }
+      }
+    } else {
+      recipeList.innerHTML = "<li>No confirmed ingredients found. Please go back and scan.</li>";
+    }
+
+    // Creates a list item for a single or combo ingredient, and buttons for each recipe
+    function addRecipeButtons(key) {
+      const items = recipesDB[key] || [];
+      if (!items.length) return; 
 
       const li = document.createElement("li");
-      li.innerHTML = `<strong>${item.name} (x${item.count}):</strong> 
-                      ${possibleRecipes.join(", ")}`;
-      recipeList.appendChild(li);
-    });
-  } else {
-    recipeList.innerHTML = "<li>No confirmed ingredients found. Please go back and scan.</li>";
-  }
+      const displayName = key.split("+").map(capitalize).join(" + ");
+      const title = document.createElement("h3");
+      title.textContent = displayName + " Recipes:";
+      li.appendChild(title);
 
-  // Reset function if user wants to clear everything
-  function resetList() {
-    if (confirm("Are you sure you want to reset everything?")) {
-      localStorage.removeItem("detectedIngredients");
-      localStorage.removeItem("confirmedIngredients");
-      localStorage.removeItem("allergies");
-      localStorage.removeItem("portion");
-      localStorage.removeItem("preferences");
-      alert("All data has been reset.");
-      location.reload();
+      items.forEach(recipe => {
+        const button = document.createElement("button");
+        button.className = "recipe-button";
+        button.textContent = recipe.name;
+        button.onclick = () => alertRecipe(recipe);
+        li.appendChild(button);
+      });
+
+      recipeList.appendChild(li);
     }
-  }
-</script>
+
+    // Show an alert with the recipe's name and instructions
+    function alertRecipe(recipe) {
+      alert(`${recipe.name}\n\nHow to make:\n${recipe.instructions}`);
+    }
+
+    // Capitalize helper
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // Reset function to clear localStorage
+    function resetList() {
+      if (confirm("Are you sure you want to reset everything?")) {
+        localStorage.removeItem("detectedIngredients");
+        localStorage.removeItem("confirmedIngredients");
+        alert("All data has been reset.");
+        location.reload();
+      }
+    }
+  </script>
 </body>
 </html>
