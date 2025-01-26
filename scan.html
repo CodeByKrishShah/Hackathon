@@ -7,7 +7,7 @@
 
   <!-- Include TensorFlow.js and the COCO-SSD model -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <script src=" "></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
   <style>
     body {
@@ -143,13 +143,14 @@
         // Clear previous drawings
         overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-        // For more accuracy, use a higher threshold, e.g. > 0.60
+        // For more accuracy, use a higher threshold if you like
         const minScoreThreshold = 0.50;
 
         predictions.forEach(pred => {
           const isFood = foodItems.includes(pred.class.toLowerCase());
           const isAboveThreshold = pred.score >= minScoreThreshold;
 
+          // Draw bounding boxes only for listed foods above threshold
           if (isFood && isAboveThreshold) {
             drawBoundingBox(pred);
           }
@@ -166,6 +167,7 @@
       // Scale detection coords to the overlay canvas
       const xRatio = overlayCanvas.width / videoElement.videoWidth;
       const yRatio = overlayCanvas.height / videoElement.videoHeight;
+
       const scaledX = x * xRatio;
       const scaledY = y * yRatio;
       const scaledW = w * xRatio;
@@ -181,15 +183,16 @@
       // Prepare label text
       const label = `${prediction.class} (${(prediction.score * 100).toFixed(1)}%)`;
 
-      // Draw text background for better visibility
       overlayCtx.font = "16px Arial";
+      // measure label width
       const textWidth = overlayCtx.measureText(label).width + 6;
       const textHeight = 18;
 
-      // Position label above the box, or inside if there's not enough space
+      // Position label above the box, or below if there's not enough space
       const textX = scaledX;
       const textY = scaledY > 20 ? scaledY - 5 : scaledY + textHeight + 5;
 
+      // Draw label background
       overlayCtx.fillStyle = "red";
       overlayCtx.fillRect(textX, textY - textHeight, textWidth, textHeight);
 
