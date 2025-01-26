@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScanToRecipe - Scan Results</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 600px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ff8e61;
+      color: white;
+      text-align: center;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background-color: #ff7300;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ScanToRecipe - Scan Results</h1>
+    <img id="captured-image" alt="Captured Image Not Found" />
+    <a href="scan.html" class="btn">Back to Scan</a>
+  </div>
+
+  <script>
+    async function analyzeImage() {
+      const capturedImage = localStorage.getItem("capturedImage"); // Retrieve stored image
+      const imgElement = document.getElementById("captured-image");
+
+      if (capturedImage) {
+        imgElement.src = capturedImage; // Display the captured image
+
+        imgElement.onload = async function () {
+          try {
+            // Load TensorFlow.js COCO-SSD model
+            const model = await cocoSsd.load();
+            const predictions = await model.detect(imgElement);
+
+            console.log("Predictions:", predictions); // Log predictions for debugging
+
+            // Filter predictions to include only food-related items
+            const foodItems = predictions.filter((prediction) =>
+              isFoodItem(prediction.class)
+            );
+
+            if (foodItems.length > 0) {
+              alert(
+                "Detected Food Items:\n" +
+                  foodItems.map((item) => `${item.class} (${item.score.toFixed(2)})`).join("\n")
+              );
+            } else {
+              alert("No food items detected.");
+            }
+          } catch (error) {
+            console.error("Error loading model or detecting objects:", error);
+          }
+        };
+      } else {
+        imgElement.alt = "No image found";
+        console.error("No image found in localStorage.");
+        alert("No image was captured. Please go back and scan again.");
+      }
+    }
+
+    function isFoodItem(itemClass) {
+      // Extend this list with more food items as needed
+      const foodItems = [
+        "apple",
+        "banana",
+        "orange",
+        "carrot",
+        "pizza",
+        "hot dog",
+        "donut",
+        "cake"
+      ];
+      return foodItems.includes(itemClass.toLowerCase());
+    }
+
+    window.onload = analyzeImage; // Run analyzeImage when the page loads
+  </script>
+</body>
+</html>
