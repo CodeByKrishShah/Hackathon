@@ -1,91 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Scan Ingredients</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-    .container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .overlay {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-    }
-    .btn {
-      padding: 15px 30px;
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #fff;
-      background: #ff8e61;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease-in-out;
-      box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
-      text-align: center;
-    }
-    .btn:hover {
-      background: #ff7300;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Ingredients</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            background: #ff8e61;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #ff7300;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <video id="camera-feed" autoplay playsinline></video>
-    <div class="overlay">
-      <button class="btn" onclick="captureImage()">Take Photo</button>
+    <div class="container">
+        <video id="camera-feed" autoplay playsinline></video>
+        <div class="overlay">
+            <button class="btn" onclick="captureImage()">Take Photo</button>
+        </div>
     </div>
-  </div>
 
-  <script>
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        const videoElement = document.getElementById('camera-feed');
-        videoElement.srcObject = stream;
-      } catch (error) {
-        alert('Error accessing camera: ' + error.message);
-      }
-    }
+    <script>
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                const videoElement = document.getElementById('camera-feed');
+                videoElement.srcObject = stream;
+            } catch (error) {
+                alert('Error accessing camera: ' + error.message);
+            }
+        }
 
-    function captureImage() {
-      const video = document.getElementById('camera-feed');
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        function captureImage() {
+            const video = document.getElementById('camera-feed');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to data URL and store it
+            const imageData = canvas.toDataURL('image/png');
+            localStorage.setItem('capturedImage', imageData);
+            window.location.href = 'scan_results.html';
+        }
 
-      // Convert to data URL and store in localStorage
-      const imageData = canvas.toDataURL('image/png');
-      localStorage.setItem('capturedImage', imageData);
-
-      // Navigate to the scan results page
-      window.location.href = 'scan_results.html';
-    }
-
-    window.onload = startCamera;
-  </script>
+        window.onload = startCamera;
+    </script>
 </body>
 </html>

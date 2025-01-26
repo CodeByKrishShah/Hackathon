@@ -3,38 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Recipe Builder</title>
+    <title>AI Recipe Builder - ScanToRecipe</title>
     <style>
-        body {
+        :root {
+            --primary-color: #ff8e61;
+            --secondary-color: #ff7300;
+            --background-gradient: linear-gradient(135deg, #093eff, #ff7300);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #093eff, #ff7300);
-            height: 100vh;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: var(--background-gradient);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            text-align: center;
             color: #fff;
-            overflow: hidden;
+            text-align: center;
+            padding: 20px;
         }
 
         .container {
             max-width: 600px;
+            width: 100%;
             padding: 40px;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.6);
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         h1 {
             font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         p {
             font-size: 1.2em;
             margin-bottom: 30px;
+            line-height: 1.6;
         }
 
         .btn {
@@ -43,7 +57,7 @@
             font-size: 1.2em;
             font-weight: bold;
             color: #fff;
-            background: #ff8e61;
+            background: var(--primary-color);
             border: none;
             border-radius: 50px;
             cursor: pointer;
@@ -52,8 +66,8 @@
             box-shadow: 0 5px 15px rgba(255, 163, 97, 0.3);
         }
 
-        .btn:hover {
-            background: #ff7300;
+        .btn:hover, .btn:focus {
+            background: var(--secondary-color);
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(255, 151, 47, 0.4);
         }
@@ -61,29 +75,55 @@
         .photo-frame {
             width: 300px;
             height: 220px;
-            margin: 20px auto;
-            border: 5px solid black;
+            margin: 30px auto;
+            border: 5px solid #fff;
             background-color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .photo-frame:hover {
+            transform: scale(1.05);
         }
 
         .photo-frame img {
             max-width: 100%;
             height: auto;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            p {
+                font-size: 1em;
+            }
+
+            .photo-frame {
+                width: 250px;
+                height: 180px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome to ScanToRecipe!</h1>
-        <p>Scan your ingredients with AR technology and discover new recipes and prevent food waste</p>
+        <p>Scan your ingredients with AR technology, discover new recipes, and prevent food waste</p>
 
         <div class="photo-frame">
-            <img src="chefshackathon.png" alt="Uploaded Image">
+            <img src="chefshackathon.png" alt="Chef Hackathon">
         </div>
 
         <a href="scan.html" class="btn">Start Scanning</a>
