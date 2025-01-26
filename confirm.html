@@ -61,6 +61,7 @@
             transition: all 0.3s ease-in-out;
             text-decoration: none;
             box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
+            margin: 10px;
         }
         .btn:hover {
             background: #ff7300;
@@ -104,6 +105,7 @@
 
         <br>
         <button class="btn" onclick="confirmIngredients()">Confirm</button>
+        <button class="btn" onclick="goBackToScan()">Back to Scan</button>
     </div>
 
     <script>
@@ -171,6 +173,10 @@
 
           // Navigate to next step
           window.location.href = 'customize.html';
+        }
+
+        function goBackToScan() {
+          window.location.href = 'scan.html';
         }
 
         // Helper: capitalize first letter only
