@@ -16,7 +16,6 @@
             text-align: center;
             color: #fff;
         }
-
         .container {
             max-width: 700px;
             padding: 40px;
@@ -24,18 +23,15 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
             font-weight: bold;
         }
-
         .ingredient-list {
             list-style: none;
             padding: 0;
         }
-
         .ingredient-item {
             display: flex;
             justify-content: space-between;
@@ -45,7 +41,6 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
-
         .ingredient-item input {
             width: 50px;
             padding: 5px;
@@ -54,7 +49,6 @@
             border: none;
             border-radius: 5px;
         }
-
         .btn {
             padding: 15px 30px;
             font-size: 1.2em;
@@ -68,12 +62,10 @@
             text-decoration: none;
             box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
         }
-
         .btn:hover {
             background: #ff7300;
             transform: translateY(-3px);
         }
-
         .remove-btn {
             background: red;
             padding: 5px 15px;
@@ -82,13 +74,11 @@
             color: white;
             cursor: pointer;
         }
-
         .add-ingredient {
             display: flex;
             justify-content: center;
             margin-top: 20px;
         }
-
         .add-ingredient input {
             padding: 10px;
             font-size: 1em;
@@ -103,7 +93,7 @@
         <h1>Confirm Ingredients</h1>
 
         <ul class="ingredient-list" id="ingredient-list">
-            <!-- Ingredients will be populated dynamically -->
+            <!-- Dynamically populated -->
         </ul>
 
         <div class="add-ingredient">
@@ -117,55 +107,75 @@
     </div>
 
     <script>
-        let detectedIngredients = [
-            { name: 'Tomato', count: 3 },
-            { name: 'Banana', count: 2 },
-            { name: 'Carrot', count: 1 }
-        ];
+        // We'll build this array from localStorage data
+        let detectedIngredients = [];
 
         function loadIngredients() {
-            const list = document.getElementById('ingredient-list');
-            list.innerHTML = '';  // Clear previous data
-            detectedIngredients.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'ingredient-item';
-                li.innerHTML = `
-                    <span>${item.name}</span>
-                    <input type="number" value="${item.count}" min="1" id="count-${index}">
-                    <button class="remove-btn" onclick="removeIngredient(${index})">Remove</button>
-                `;
-                list.appendChild(li);
-            });
+          // 1) Read the aggregated object from localStorage, e.g. { apple: 2, banana: 1 }
+          const storedObj = JSON.parse(localStorage.getItem('detectedIngredients')) || {};
+
+          // 2) Convert it into an array of { name, count }
+          detectedIngredients = Object.keys(storedObj).map(key => {
+            return { name: capitalize(key), count: storedObj[key] };
+          });
+
+          // Populate the list
+          renderIngredientList();
+        }
+
+        function renderIngredientList() {
+          const list = document.getElementById('ingredient-list');
+          list.innerHTML = '';
+
+          detectedIngredients.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'ingredient-item';
+            li.innerHTML = `
+              <span>${item.name}</span>
+              <input type="number" value="${item.count}" min="1" id="count-${index}">
+              <button class="remove-btn" onclick="removeIngredient(${index})">Remove</button>
+            `;
+            list.appendChild(li);
+          });
         }
 
         function addIngredient() {
-            const ingredientInput = document.getElementById('new-ingredient');
-            const quantityInput = document.getElementById('new-quantity');
+          const ingredientInput = document.getElementById('new-ingredient');
+          const quantityInput = document.getElementById('new-quantity');
 
-            if (ingredientInput.value.trim() !== '') {
-                detectedIngredients.push({
-                    name: ingredientInput.value.trim(),
-                    count: parseInt(quantityInput.value)
-                });
+          const newName = ingredientInput.value.trim();
+          const newCount = parseInt(quantityInput.value);
 
-                ingredientInput.value = '';
-                quantityInput.value = '1';
-
-                loadIngredients();
-            }
+          if (newName) {
+            detectedIngredients.push({ name: capitalize(newName), count: newCount });
+            ingredientInput.value = '';
+            quantityInput.value = '1';
+            renderIngredientList();
+          }
         }
 
         function removeIngredient(index) {
-            detectedIngredients.splice(index, 1);
-            loadIngredients();
+          detectedIngredients.splice(index, 1);
+          renderIngredientList();
         }
 
         function confirmIngredients() {
-            detectedIngredients.forEach((item, index) => {
-                item.count = parseInt(document.getElementById(`count-${index}`).value);
-            });
-            localStorage.setItem('confirmedIngredients', JSON.stringify(detectedIngredients));
-            window.location.href = 'customize.html';
+          // Update the counts from the input fields
+          detectedIngredients.forEach((item, index) => {
+            const countField = document.getElementById(`count-${index}`);
+            item.count = parseInt(countField.value) || 1;
+          });
+
+          // Store the final list in localStorage as 'confirmedIngredients'
+          localStorage.setItem('confirmedIngredients', JSON.stringify(detectedIngredients));
+
+          // Navigate to next step
+          window.location.href = 'customize.html';
+        }
+
+        // Helper: capitalize first letter only
+        function capitalize(str) {
+          return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
 
         window.onload = loadIngredients;

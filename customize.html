@@ -16,7 +16,6 @@
             text-align: center;
             color: #fff;
         }
-
         .container {
             max-width: 600px;
             padding: 40px;
@@ -24,13 +23,11 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
-
         h1 {
             font-size: 2.5em;
             margin-bottom: 20px;
             font-weight: bold;
         }
-
         .btn {
             display: inline-block;
             padding: 15px 30px;
@@ -46,13 +43,11 @@
             box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
             margin: 10px;
         }
-
         .btn:hover {
             background: #ff7300;
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(255, 59, 47, 0.4);
         }
-
         input, select {
             width: 100%;
             padding: 12px;
@@ -62,11 +57,9 @@
             font-size: 1em;
             text-align: center;
         }
-
         .slider-container {
             margin-top: 20px;
         }
-
         .slider {
             width: 100%;
             -webkit-appearance: none;
@@ -77,18 +70,15 @@
             opacity: 0.9;
             transition: 0.2s;
         }
-
         .slider:hover {
             opacity: 1;
         }
-
         #portion-value {
             font-size: 1.5em;
             font-weight: bold;
             color: #fff;
             margin-top: 10px;
         }
-
         @media (max-width: 768px) {
             h1 {
                 font-size: 2em;
@@ -132,6 +122,7 @@
         function addAllergy(allergy) {
             let allergyInput = document.getElementById('allergies');
             if (!allergyInput.value.includes(allergy)) {
+                // If the input is non-empty, prepend a comma
                 allergyInput.value += allergyInput.value ? `, ${allergy}` : allergy;
             }
         }
@@ -140,15 +131,20 @@
         const portionValue = document.getElementById('portion-value');
 
         portionSlider.addEventListener('input', function() {
-            const portionText = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
-            portionValue.innerText = portionText[portionSlider.value - 1];
+            portionValue.innerText = portionSlider.value;
         });
 
         function submitPreferences() {
             const allergies = document.getElementById('allergies').value;
             const portion = portionValue.innerText;
             const preferences = document.getElementById('preferences').value;
-            alert(`Allergies: ${allergies}\nPortion: ${portion}\nPreferences: ${preferences}`);
+
+            // Store them
+            localStorage.setItem('allergies', allergies);
+            localStorage.setItem('portion', portion);
+            localStorage.setItem('preferences', preferences);
+
+            // Move on to the generate page
             window.location.href = 'generate.html';
         }
     </script>

@@ -17,7 +17,6 @@
       align-items: center;
       min-height: 100vh;
     }
-
     .container {
       width: 90%;
       max-width: 600px;
@@ -25,18 +24,15 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-      text-align: center; /* center contents nicely */
+      text-align: center;
     }
-
     h1 {
       color: #333;
     }
-
     img {
       max-width: 100%;
       border-radius: 10px;
     }
-
     .btn {
       display: inline-block;
       padding: 10px 20px;
@@ -47,14 +43,11 @@
       text-decoration: none;
       font-weight: bold;
       margin-top: 20px;
-      margin-right: 10px; /* spacing between buttons */
+      margin-right: 10px;
     }
-
     .btn:hover {
       background-color: #ff7300;
     }
-
-    /* Optional styling for the detected items list */
     #detected-items {
       margin-top: 20px;
       font-weight: bold;
@@ -68,48 +61,54 @@
     <h1>ScanToRecipe - Scan Results</h1>
     <img id="captured-image" alt="Captured Image Not Found" />
     
-    <!-- This is the new container for detected ingredients -->
     <div id="detected-items"></div>
 
-    <!-- Navigation buttons -->
     <a href="scan.html" class="btn">Back to Scan</a>
     <a href="confirm.html" class="btn">Done</a>
   </div>
 
   <script>
     async function analyzeImage() {
-      const capturedImage = localStorage.getItem("capturedImage"); // Retrieve stored image
+      const capturedImage = localStorage.getItem("capturedImage");
       const imgElement = document.getElementById("captured-image");
       const detectedItemsDiv = document.getElementById("detected-items");
 
       if (capturedImage) {
-        imgElement.src = capturedImage; // Display the captured image
+        imgElement.src = capturedImage;
 
         imgElement.onload = async function () {
           try {
-            // Load TensorFlow.js COCO-SSD model
             const model = await cocoSsd.load();
             const predictions = await model.detect(imgElement);
-
-            console.log("Predictions:", predictions); // Log predictions for debugging
+            console.log("Predictions:", predictions);
 
             // Filter predictions to include only food-related items
-            const foodItems = predictions.filter((prediction) =>
-              isFoodItem(prediction.class)
-            );
+            const foodItems = predictions.filter((p) => isFoodItem(p.class));
 
             if (foodItems.length > 0) {
-              // Show detected items in the <div> instead of alert
+              // Show items in the div
               const itemList = foodItems
-                .map((item) => `${item.class} (${item.score.toFixed(2)})`)
+                .map((i) => `${i.class} (${i.score.toFixed(2)})`)
                 .join("<br>");
               detectedItemsDiv.innerHTML = `Detected Food Items:<br>${itemList}`;
+
+              // Aggregate them by name in an object (e.g. { 'apple': 2, 'banana': 1 })
+              const aggregated = {};
+              foodItems.forEach((item) => {
+                const itemName = item.class.toLowerCase();
+                aggregated[itemName] = (aggregated[itemName] || 0) + 1;
+              });
+
+              // Store aggregated items in localStorage
+              localStorage.setItem("detectedIngredients", JSON.stringify(aggregated));
             } else {
               detectedItemsDiv.innerHTML = "No food items detected.";
+              // If no items, store an empty object
+              localStorage.setItem("detectedIngredients", JSON.stringify({}));
             }
           } catch (error) {
-            console.error("Error loading model or detecting objects:", error);
-            detectedItemsDiv.innerHTML = "Error detecting objects. Please try again.";
+            console.error("Error loading/detecting:", error);
+            detectedItemsDiv.innerHTML = "Error detecting objects.";
           }
         };
       } else {
@@ -120,21 +119,11 @@
     }
 
     function isFoodItem(itemClass) {
-      // Extend this list with more food items as needed
-      const foodItems = [
-        "apple",
-        "banana",
-        "orange",
-        "carrot",
-        "pizza",
-        "hot dog",
-        "donut",
-        "cake"
-      ];
-      return foodItems.includes(itemClass.toLowerCase());
+      const list = ["apple","banana","orange","carrot","pizza","hot dog","donut","cake"];
+      return list.includes(itemClass.toLowerCase());
     }
 
-    window.onload = analyzeImage; // Run analyzeImage when the page loads
+    window.onload = analyzeImage;
   </script>
 </body>
 </html>
