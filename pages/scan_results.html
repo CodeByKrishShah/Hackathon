@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScanToRecipe - Scan Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        #captured-image {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+
+        h2 {
+            width: 100%;
+            text-align: center;
+            color: #333;
+        }
+
+        #ingredients {
+            list-style-type: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        #ingredients li {
+            margin-bottom: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            background-color: #ff8e61;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s ease-in-out;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: #ff7300;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ScanToRecipe - Scan Results</h1>
+        <img id="captured-image" alt="Captured Image" />
+        <h2>Detected Ingredients:</h2>
+        <ul id="ingredients"></ul>
+        <a href="scan.html" class="btn">Back to Scan</a>
+    </div>
+
+    <script>
+        async function analyzeImage() {
+        const response = await fetch('http://localhost:5000/api/openai', {
+            method: 'POST',
+            body: JSON.stringify({ prompt: "Analyze this image for food ingredients." }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+        console.log(data);
+    }
+    </script>
+</body>
+</html>
