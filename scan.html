@@ -3,92 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Ingredients</title>
+    <title>AI Recipe Builder</title>
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #000;
+            background: linear-gradient(135deg, #093eff, #ff7300);
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            text-align: center;
+            color: #fff;
             overflow: hidden;
         }
 
-        .container {
+        .container, .ui-container {
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
             position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             z-index: 10;
         }
 
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
         .btn {
+            display: inline-block;
             padding: 15px 30px;
             font-size: 1.2em;
             font-weight: bold;
             color: #fff;
             background: #ff8e61;
             border: none;
-            border-radius: 10px;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease-in-out;
-            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.3);
-            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(255, 163, 97, 0.3);
+            margin: 10px;
         }
 
         .btn:hover {
             background: #ff7300;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 151, 47, 0.4);
+        }
+
+        .photo-frame {
+            width: 300px;
+            height: 220px;
+            margin: 20px auto;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .photo-frame:hover {
+            transform: scale(1.05);
+        }
+
+        .photo-frame img {
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .ar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ingredient-list, #detected-objects {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; }
+            p { font-size: 1em; }
+            .btn { 
+                font-size: 1em; 
+                padding: 12px 25px; 
+            }
+            .photo-frame {
+                width: 250px;
+                height: 180px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="ar-container" style="display:none;">
+        <a-scene embedded arjs='sourceType: webcam; debugUIEnabled: false;'>
+            <a-camera gps-camera rotation-reader></a-camera>
+        </a-scene>
+    </div>
+
+    <div class="ui-container" style="display:none;">
+        <h1>Scan Your Ingredients</h1>
+        <button class="btn" onclick="startScan()">Start Scan</button>
+        <button class="btn" onclick="finishScan()">Done</button>
+        <div id="ingredient-list"></div>
+        <div id="detected-objects"></div>
+    </div>
+
     <div class="container">
-        <video id="camera-feed" autoplay playsinline></video>
-        <div class="overlay">
-            <button class="btn" onclick="captureImage()">Take Photo</button>
+        <h1>Welcome to AI Recipe Builder</h1>
+        <p>Scan your ingredients with AR technology, discover new recipes, and prevent food waste</p>
+
+        <div class="photo-frame">
+            <img src="chefshackathon.png" alt="Chef Hackathon">
         </div>
+
+        <button onclick="startARScan()" class="btn">Start Scanning</button>
     </div>
 
     <script>
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                const videoElement = document.getElementById('camera-feed');
-                videoElement.srcObject = stream;
-            } catch (error) {
-                alert('Error accessing camera: ' + error.message);
+        let model;
+        let isScanning = false;
+    
+        async function loadModel() {
+            model = await cocoSsd.load();
+            console.log('Model loaded');
+        }
+    
+        async function detectObjects(video) {
+            const predictions = await model.detect(video);
+            updateIngredientList(predictions);
+        }
+    
+        function updateIngredientList(predictions) {
+            const ingredientList = document.getElementById('ingredient-list');
+            const detectedObjects = document.getElementById('detected-objects');
+            ingredientList.innerHTML = '<h3>Detected Ingredients:</h3>';
+            detectedObjects.innerHTML = '<h3>All Detected Objects:</h3>';
+            predictions.forEach((prediction, index) => {
+                if (isIngredient(prediction.class)) {
+                    ingredientList.innerHTML += `<p>${index + 1}. ${prediction.class} (${Math.round(prediction.score * 100)}% confidence)</p>`;
+                }
+                detectedObjects.innerHTML += `<p>${prediction.class} (${Math.round(prediction.score * 100)}% confidence)</p>`;
+            });
+        }
+    
+        function isIngredient(object) {
+            const ingredients = [
+                // Fruits and Vegetables
+                'abalone', 'acai berries', 'acorn squash', 'apple', 'apricot', 'arugula', 'asparagus', 'avocado', 'banana', 'basil', 'beet', 'bell pepper', 'blackberry', 'blueberry', 'broccoli', 'brussels sprout', 'cabbage', 'carrot', 'cauliflower', 'celery', 'cherry', 'cilantro', 'coconut', 'corn', 'cranberry', 'cucumber', 'date', 'eggplant', 'garlic', 'ginger', 'grapefruit', 'grape', 'green bean', 'green pea', 'kale', 'kiwi', 'lemon', 'lettuce', 'lime', 'mango', 'mushroom', 'onion', 'orange', 'peach', 'pear', 'pineapple', 'potato', 'pumpkin', 'spinach', 'strawberry', 'sweet potato', 'tomato', 'watermelon', 'zucchini',
+    
+                // Proteins
+                'adzuki bean', 'albacore tuna', 'almond', 'anchovy', 'bacon', 'beef', 'black bean', 'cashew', 'chicken', 'chickpea', 'clam', 'crab', 'egg', 'lamb', 'peanut', 'salmon', 'turkey', 'walnut',
+    
+                // Dairy and Alternatives
+                'butter', 'cheese', 'cream', 'milk', 'yogurt',
+    
+                // Grains and Legumes
+                'bread', 'oat', 'rice',
+    
+                // Oils and Condiments
+                'honey', 'olive oil',
+    
+                // Beverages
+                'coffee', 'tea'
+            ];
+            return ingredients.includes(object.toLowerCase());
+        }
+    
+        function startARScan() {
+            document.querySelector('.container').style.display = 'none';
+            document.querySelector('.ar-container').style.display = 'block';
+            document.querySelector('.ui-container').style.display = 'block';
+        }
+    
+        function startScan() {
+            isScanning = true;
+            const video = document.querySelector('video');
+            detectLoop(video);
+        }
+    
+        function detectLoop(video) {
+            if (isScanning) {
+                detectObjects(video);
+                requestAnimationFrame(() => detectLoop(video));
             }
         }
-
-        function captureImage() {
-            const video = document.getElementById('camera-feed');
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Convert to data URL and store it
-            const imageData = canvas.toDataURL('image/png');
-            localStorage.setItem('capturedImage', imageData);
-            window.location.href = 'scan_results.html';
+    
+        function finishScan() {
+            isScanning = false;
+            alert('Scan completed! Ingredients detected.');
+            document.querySelector('.container').style.display = 'block';
+            document.querySelector('.ar-container').style.display = 'none';
+            document.querySelector('.ui-container').style.display = 'none';
         }
-
-        window.onload = startCamera;
+    
+        window.onload = loadModel;
+    
+        document.addEventListener('arjs-video-loaded', () => {
+            console.log('AR.js video loaded');
+        });
     </script>
+    
 </body>
 </html>

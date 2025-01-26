@@ -35,8 +35,8 @@
         }
 
         #captured-image {
-            width: 100%;
-            max-width: 100%;
+            width: 50%;
+            max-width: 50%;
             height: auto;
             border-radius: 10px;
             margin-bottom: 20px;
@@ -115,38 +115,38 @@
     </div>
 
     <script>
-        async function analyzeImage() {
-            const capturedImage = localStorage.getItem('capturedImage');
-            const imgElement = document.getElementById('captured-image');
+       async function analyzeImage() {
+    const capturedImage = localStorage.getItem('capturedImage');
+    const imgElement = document.getElementById('captured-image');
 
-            if (capturedImage) {
-                imgElement.src = capturedImage;
-                const blob = await fetch(capturedImage).then(res => res.blob());
-                const formData = new FormData();
-                formData.append("image", blob, "image.png");
+    if (capturedImage) {
+        imgElement.src = capturedImage;
+        const formData = new FormData();
+        formData.append("image", capturedImage);
 
-                try {
-                    const response = await fetch('http://localhost:5000/analyze', {
-                        method: 'POST',
-                        body: formData
-                    });
+        try {
+            const response = await fetch('http://127.0.0.1:5000/analyze', {
+                method: 'POST',
+                body: formData
+            });
 
-                    if (!response.ok) {
-                        throw new Error('Error analyzing the image.');
-                    }
-
-                    const data = await response.json();
-                    updateIngredientList(data.ingredients);
-                } catch (error) {
-                    document.getElementById('ingredients').innerHTML = `<li>Error: ${error.message}</li>`;
-                }
-            } else {
-                imgElement.alt = "No image found";
-                document.getElementById('ingredients').innerHTML = "<li>No image to analyze.</li>";
+            if (!response.ok) {
+                throw new Error('Error analyzing the image.');
             }
 
-            localStorage.removeItem('capturedImage');
+            const data = await response.json();
+            updateIngredientList(data.ingredients);
+        } catch (error) {
+            document.getElementById('ingredients').innerHTML = `<li>Error: ${error.message}</li>`;
         }
+    } else {
+        imgElement.alt = "No image found";
+        document.getElementById('ingredients').innerHTML = "<li>No image to analyze.</li>";
+    }
+
+    localStorage.removeItem('capturedImage');
+}
+
 
         function updateIngredientList(ingredients) {
             const ingredientList = document.getElementById('ingredients');
